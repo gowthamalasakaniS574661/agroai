@@ -1,8 +1,7 @@
-fastapi
-uvicorn[standard]
-tensorflow>=2.9
-pillow
-joblib
-numpy
+gradio==4.44.0
+tensorflow==2.19.0
 scikit-learn
-python-multipart
+joblib
+pillow
+numpy
+
