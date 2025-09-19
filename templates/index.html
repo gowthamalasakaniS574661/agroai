@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>AgroAI - Upload & Predict</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    .card { border: 1px solid #ddd; padding: 16px; border-radius: 8px; max-width: 800px; }
+    img.preview{ max-width: 320px; border-radius: 8px; display:block; margin-bottom:8px; }
+    .row { display:flex; gap:12px; align-items:center; }
+    .btn { background:#1976d2; color:white; padding:8px 12px; border:none; border-radius:6px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>AgroAI — Upload leaf image</h2>
+    <p>Select pipeline: <select id="pipeline"><option value="dl">Deep (CNN)</option><option value="classical">Classical (embeddings → classifier)</option></select></p>
+
+    <input id="fileInput" type="file" accept="image/*" multiple />
+    <div style="height:12px"></div>
+    <button id="uploadBtn" class="btn">Upload & Predict</button>
+
+    <h3>Results</h3>
+    <div id="results"></div>
+  </div>
+
+  <script>
+    async function uploadAndPredict(files) {
+      const pipeline = document.getElementById("pipeline").value;
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "";
+      for (let i=0;i<files.length;i++){
+        const f = files[i];
+        const fd = new FormData();
+        fd.append("file", f);
+        fd.append("pipeline", pipeline);
+        fd.append("top_k", "5");
+
+        const resp = await fetch("/predict", { method: "POST", body: fd });
+        const j = await resp.json();
+        if (resp.status !== 200) {
+          resultsDiv.innerHTML += "<div style='color:red'>Error: " + (j.error || resp.status) + "</div>";
+          continue;
+        }
+
+        // display
+        const wrapper = document.createElement("div");
+        wrapper.style.borderTop = "1px solid #eee";
+        wrapper.style.paddingTop = "12px";
+        wrapper.style.marginTop = "12px";
+
+        const img = document.createElement("img");
+        img.src = j.image_url;
+        img.className = "preview";
+        wrapper.appendChild(img);
+
+        const p = document.createElement("div");
+        p.innerHTML = `<b>Pipeline:</b> ${j.pipeline} — <b>Time:</b> ${j.took.toFixed(3)}s`;
+        wrapper.appendChild(p);
+
+        const ul = document.createElement("ul");
+        j.predictions.forEach(item => {
+          const li = document.createElement("li");
+          li.innerText = `${item.label} — ${ (item.confidence*100).toFixed(2) }%`;
+          ul.appendChild(li);
+        });
+        wrapper.appendChild(ul);
+
+        resultsDiv.appendChild(wrapper);
+      }
+    }
+
+    document.getElementById("uploadBtn").addEventListener("click", async ()=>{
+      const inp = document.getElementById("fileInput");
+      if (!inp.files || inp.files.length==0) { alert("Choose an image file first"); return; }
+      await uploadAndPredict(inp.files);
+    });
+  </script>
+</body>
+</html>

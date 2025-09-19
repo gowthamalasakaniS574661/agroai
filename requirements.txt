@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+tensorflow>=2.9
+pillow
+joblib
+numpy
+scikit-learn
+python-multipart
