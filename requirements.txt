@@ -1,9 +1,11 @@
 fastapi==0.116.1
 uvicorn[standard]==0.22.0
-tensorflow-cpu==2.12.0
 pillow
 numpy
-huggingface-hub
 python-multipart
+scikit-learn
+joblib
+huggingface-hub
+
 
 
